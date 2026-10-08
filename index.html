@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NovaDrive Consularium · Supply-Network Risk Terminal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--void:#05080C;--panel:#0A0F16;--panel2:#0E131B;--elev:#141C28;--stroke:#1F2937;--soft:#16202C;--hi:#E8EEF6;--mid:#9AA9BC;--lo:#6B7A8F;--crit:#FF3B47;--elev-c:#FFB020;--mod:#FFE066;--low:#2ECC71;--ai:#7C5CFF;--info:#38BDF8;--up:#00E08A;--down:#FF3355}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--void);color:var(--hi);font:13px Inter,system-ui,sans-serif;overflow:hidden}
+.mono,.num{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+button{font:inherit;color:inherit;background:var(--elev);border:1px solid var(--stroke);border-radius:6px;padding:4px 9px;cursor:pointer}button:hover{border-color:var(--ai)}button:disabled{opacity:.35;cursor:not-allowed}
+button.on{background:#2a1f57;border-color:var(--ai)}a{color:var(--info)}
+#app{display:grid;height:100vh;grid-template-rows:52px 28px 92px 1fr 48px}
+header{display:flex;align-items:center;gap:12px;padding:0 14px;background:var(--panel);border-bottom:1px solid var(--stroke)}
+header h1{font-size:13px;letter-spacing:.14em;margin:0;white-space:nowrap}header h1 b{color:var(--ai)}
+#chips{display:flex;gap:6px;flex:1;overflow:hidden;align-items:center}
+.chip{white-space:nowrap;font-size:11px;padding:3px 8px;border-radius:999px;border:1px solid var(--stroke);background:var(--panel2)}
+.chip.on{border-color:var(--crit);background:#2a0e12}
+#clock{width:180px;height:44px;border:1px solid var(--stroke);border-radius:6px;padding:4px 8px;background:var(--panel2);font-size:11px;line-height:1.35}
+#agent{width:260px;height:44px;position:relative}#agent>button{width:100%;height:44px;text-align:left;border-color:var(--ai)}
+#pop{display:none;position:absolute;right:0;top:48px;width:300px;background:var(--elev);border:1px solid var(--ai);border-radius:8px;padding:10px;z-index:30;font-size:12px;line-height:1.5}
+#tape{background:#060A0F;border-bottom:1px solid var(--stroke);overflow:hidden;display:flex;align-items:center}
+#lamp{flex:none;width:92px;padding:0 8px;font-size:10px;display:flex;align-items:center;gap:6px;background:#060A0F;z-index:2;border-right:1px solid var(--stroke)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--low);animation:pulse 1.6s infinite}@keyframes pulse{50%{opacity:.35}}
+#tapewrap{overflow:hidden;flex:1}#tapetrack{display:inline-flex;white-space:nowrap;will-change:transform;animation:scroll 90s linear infinite}#tapewrap:hover #tapetrack{animation-play-state:paused}
+@keyframes scroll{to{transform:translate3d(-50%,0,0)}}.tk{padding:0 18px;font-size:11px;border-right:1px solid #1A2432}.tk b{color:var(--hi)}
+#band{display:flex;gap:2px;padding:8px 12px;background:var(--panel)}
+.seg{border-radius:6px;padding:8px 12px;overflow:hidden;transition:flex .6s;min-width:90px;border:1px solid}
+.seg .big{font-size:22px;font-weight:600}.seg small{display:block;color:var(--mid)}
+main{display:grid;grid-template-columns:1fr 320px;min-height:0}
+#stage{position:relative;min-width:0;background:radial-gradient(circle at 50% 50%,#0b1320,#05080C 70%)}
+#svg{width:100%;height:100%}
+#rail{background:var(--panel);border-left:1px solid var(--stroke);display:flex;flex-direction:column;min-height:0}
+#tabs{display:flex;border-bottom:1px solid var(--stroke)}#tabs button{flex:1;border:0;border-radius:0;background:none;padding:8px;color:var(--mid)}#tabs button.on{color:var(--hi);box-shadow:inset 0 -2px var(--ai)}
+#railbody{flex:1;overflow:auto;padding:8px}
+.card{background:var(--panel2);border:1px solid var(--stroke);border-radius:8px;padding:8px 10px;margin-bottom:8px;animation:slide .22s}@keyframes slide{from{transform:translateY(14px);opacity:0}}
+.card.s-HIGH{border-left:3px solid var(--crit)}.card.s-ELEVATED{border-left:3px solid var(--elev-c)}.card.s-MODERATE{border-left:3px solid var(--mod)}.card.s-INFO{opacity:.75}
+.badge{display:inline-block;font-size:10px;padding:1px 6px;border-radius:4px;border:1px solid var(--stroke);margin-right:4px;font-weight:600}
+.b-HIGH{color:var(--crit);border-color:var(--crit)}.b-ELEVATED{color:var(--elev-c);border-color:var(--elev-c)}.b-MODERATE{color:var(--mod);border-color:var(--mod)}.b-LOW{color:var(--low);border-color:var(--low)}.b-warn{color:var(--elev-c)}.b-red{color:#fff;background:#7a1620;border-color:var(--crit)}.b-info{color:var(--info);border-color:var(--info)}
+.row{display:flex;align-items:center;gap:8px;padding:5px 4px;border-radius:6px;cursor:pointer}.row:hover,.row.sel{background:var(--elev)}
+.bar{height:6px;background:var(--soft);border-radius:3px;flex:1;position:relative}.bar i{position:absolute;left:0;top:0;bottom:0;border-radius:3px}
+.lo{color:var(--lo)}.mid{color:var(--mid)}.sm{font-size:11px}
+#drawer{position:absolute;top:0;right:0;bottom:0;width:470px;background:rgba(10,15,22,.97);border-left:1px solid var(--stroke);overflow:auto;padding:12px 14px;display:none;z-index:10}
+#drawer h2{margin:0 0 2px;font-size:16px}#drawer h3{font-size:11px;letter-spacing:.12em;color:var(--mid);margin:16px 0 6px;text-transform:uppercase}
+table{border-collapse:collapse;width:100%}td,th{padding:3px 5px;border-bottom:1px solid var(--soft);text-align:left;font-size:11px;vertical-align:top}
+.unk{background:repeating-linear-gradient(45deg,#2a3342,#2a3342 4px,#141c28 4px,#141c28 8px);color:var(--elev-c);padding:1px 6px;border-radius:4px;font-size:10px}
+#actions{display:flex;gap:6px;align-items:center;padding:0 12px;background:var(--panel);border-top:1px solid var(--stroke)}#actions .spacer{flex:1}
+#banner{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:#3a1028;border:1px solid var(--ai);padding:4px 14px;border-radius:999px;font-size:11px;font-weight:600;display:none;z-index:5}
+#tray{position:absolute;left:10px;bottom:8px;max-width:60%;font-size:10px;z-index:4}#tray summary{cursor:pointer;color:var(--mid)}#tray .rt{display:inline-block;margin:2px;padding:2px 6px;border:1px dashed var(--stroke);border-radius:4px;opacity:.6}
+#legend{position:absolute;left:10px;top:8px;font-size:10px;color:var(--mid);line-height:1.6;pointer-events:none}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:flex-start;justify-content:center;padding-top:12vh;z-index:50}
+.modal>div{background:var(--elev);border:1px solid var(--ai);border-radius:10px;padding:14px;width:min(640px,92vw)}
+.modal input,.modal textarea{width:100%;background:var(--void);color:var(--hi);border:1px solid var(--stroke);border-radius:6px;padding:8px;font:inherit}
+.node{cursor:pointer;transition:opacity .35s}.node text{fill:var(--hi);font-size:9px;pointer-events:none}
+@keyframes flash{0%{r:30;opacity:.9}100%{r:10;opacity:0}}.fl{fill:none;stroke:#fff;stroke-width:2;animation:flash .9s ease-out}
+@keyframes hub{50%{stroke-opacity:.25}}.hubarc{animation:hub 1.4s infinite}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body>
+<div id="app">
+<header><h1><b>NOVADRIVE</b> CONSULARIUM <span class="lo">· Supply-network risk</span></h1><div id="chips"></div>
+<div id="clock" class="mono"></div><div id="agent"><button id="agentbtn">✦ Analyst brief — <span class="lo">select a node</span></button><div id="pop"></div></div></header>
+<div id="tape"><div id="lamp" class="mono"><span class="dot" id="dot"></span><span id="lamptxt">LIVE</span></div><div id="tapewrap"><div id="tapetrack"></div></div></div>
+<div id="band"></div>
+<main><section id="stage"><div id="banner"></div><div id="legend"></div><svg id="svg" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid meet"></svg><details id="tray"><summary>Ruled-out tray</summary><div id="trayb"></div></details><aside id="drawer"></aside></section>
+<aside id="rail"><div id="tabs"><button data-t="alerts" class="on">Alerts</button><button data-t="crit">Critical</button><button data-t="log">Activity</button></div><div id="railbody"></div></aside></main>
+<footer id="actions"></footer></div>
+<div class="modal" id="modal"><div id="modalbody"></div></div>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const COL={HIGH:"#FF3B47",ELEVATED:"#FFB020",MODERATE:"#FFE066",LOW:"#2ECC71"},fmt=v=>v>=1000?"$"+(v/1000).toFixed(2)+"B":"$"+Math.round(v)+"m";
+const S={snap:null,apply:new Set(),outage:null,focus:null,detail:null,tab:"alerts",log:[],quar:new Set(JSON.parse(localStorage.nq||"[]")),rev:new Set(),esc:[],short:[],prev:{},replay:null,pos:null,fails:0};
+const params=new URLSearchParams(location.search);if(params.get("apply"))params.get("apply").split(",").forEach(x=>S.apply.add(x));
+async function api(op,p={}){const q=new URLSearchParams({op,apply:[...S.apply].join(","),...(S.outage?{outage:S.outage}:{}),...p});const r=await fetch("/api/index?"+q);if(!r.ok)throw new Error(op+" "+r.status);return r.json()}
+function log(t){S.log.unshift({t:new Date().toISOString().slice(11,19)+"Z",m:t});renderRail()}
+async function load(){try{const old=S.snap;S.snap=await api("snapshot");S.fails=0;lamp("LIVE","var(--low)");if(old)S.snap.nodes.forEach(n=>S.prev[n.id]=old.nodes.find(o=>o.id===n.id)?.score);
+ if(!S.pos)layout();render();if(S.focus)await openFocus(S.focus,true)}catch(e){S.fails++;lamp(S.fails>2?"OFFLINE":"RETRY",S.fails>2?"var(--crit)":"var(--elev-c)")}}
+function lamp(t,c){$("#lamptxt").textContent=t;$("#dot").style.background=c}
+const N=id=>S.snap.nodes.find(n=>n.id===id),nn=id=>N(id)?.short||id;
+/* ---------- layout (view only) ---------- */
+function layout(){const s=S.snap,P={},R={c:105,1:200,2:295,3:375,0:440},TAU=Math.PI*2;
+ const comps=s.components.map(c=>c.id);comps.forEach((c,i)=>P["C:"+c]={a:-Math.PI/2+i*TAU/comps.length,r:R.c});
+ const mean=as=>Math.atan2(as.reduce((x,a)=>x+Math.sin(a),0),as.reduce((x,a)=>x+Math.cos(a),0));
+ const want={};
+ s.nodes.filter(n=>n.tier===1).forEach(n=>{const cs=[...new Set(s.edges.filter(e=>e.from===n.id&&e.to==="NOVADRIVE").flatMap(e=>e.components))];want[n.id]=mean(cs.map(c=>P["C:"+c].a))});
+ for(const t of [2,3]){s.nodes.filter(n=>n.tier===t&&n.kind!=="holding").forEach(n=>{const as=s.edges.filter(e=>e.from===n.id&&e.kind==="supply"&&want[e.to]!=null).map(e=>want[e.to]);want[n.id]=as.length?mean(as):0});}
+ s.nodes.filter(n=>n.kind==="holding").forEach(n=>{const as=s.edges.filter(e=>e.from===n.id&&e.kind==="control"&&want[e.to]!=null).map(e=>want[e.to]);want[n.id]=as.length?mean(as):0});
+ for(const t of [1,2,3,0]){const L=s.nodes.filter(n=>(n.kind==="holding"?0:n.tier)===t).sort((a,b)=>want[a.id]-want[b.id]),gap=Math.max(.17,TAU/Math.max(L.length,1)*.55);
+  let prev=-1e9;L.forEach(n=>{let a=want[n.id];while(a<prev+gap&&a<prev+gap)a=prev+gap;prev=a;want[n.id]=a});
+  const over=L.length&&want[L[L.length-1].id]-want[L[0].id]; if(L.length>1&&over>TAU-gap){const k=(TAU-gap)/over;const b=want[L[0].id];L.forEach(n=>want[n.id]=b+(want[n.id]-b)*k)}
+  L.forEach(n=>P[n.id]={a:want[n.id],r:R[t]})}
+ Object.values(P).forEach(p=>{p.x=500+p.r*Math.cos(p.a);p.y=500+p.r*Math.sin(p.a)});S.pos=P}
+function pathSet(id){const s=S.snap,set=new Set([id,"NOVADRIVE"]);let st=[id];while(st.length){const x=st.pop();s.edges.filter(e=>e.to===x&&e.kind==="supply").forEach(e=>{if(!set.has(e.from)){set.add(e.from);st.push(e.from)}})}
+ st=[id];while(st.length){const x=st.pop();s.edges.filter(e=>e.from===x&&e.kind==="supply").forEach(e=>{if(e.to!=="NOVADRIVE")e.components.forEach(c=>set.add("C:"+c));if(!set.has(e.to)){set.add(e.to);st.push(e.to)}})}
+ s.edges.filter(e=>e.kind==="control"&&(set.has(e.to)||e.from===id)).forEach(e=>set.add(e.from));
+ const d=S.detail;if(d&&d.node.id===id)d.path.products.forEach(p=>set.add("P:"+p));return set}
+/* ---------- render ---------- */
+function render(){renderChips();renderBand();renderTree();renderTape();renderRail();renderActions();renderTray();renderBanner();
+ $("#legend").innerHTML=`Fill = risk band · outer ring = evidence confidence<br>(solid ≥3 families · half 2 · arc 1 · dotted hypothesis)<br>solid = confirmed · dashed = inferred · dotted = hypothesis · violet = control · red pulse = shared hub`}
+function visEvents(){const e=S.snap.events;if(S.replay==null)return e;const order=[...e].sort((a,b)=>a.published.localeCompare(b.published)||a.id.localeCompare(b.id)).slice(0,S.replay+1).map(x=>x.id);return e.filter(x=>order.includes(x.id))}
+function renderChips(){const ev=visEvents().filter(e=>e.status==="active");$("#chips").innerHTML=ev.map(e=>`<span class="chip ${S.apply.has(e.id)?"on":""}" style="cursor:pointer" data-ev="${e.id}" title="${esc(e.title)}">${S.apply.has(e.id)?"●":"○"} ${e.id} ${esc(e.cls.toUpperCase())}</span>`).join("")+`<button id="replay">${S.replay==null?"▶ Replay feed":"■ Stop replay"}</button><button id="reset">Reset</button>`;
+ document.querySelectorAll("[data-ev]").forEach(c=>c.onclick=()=>toggleEv(c.dataset.ev));$("#replay").onclick=replay;$("#reset").onclick=()=>{S.apply.clear();S.outage=null;S.replay=null;log("Scenario reset");load()}}
+function toggleEv(id){S.apply.has(id)?S.apply.delete(id):S.apply.add(id);log((S.apply.has(id)?"Applied ":"Reverted ")+id);load()}
+let rt;function replay(){if(S.replay!=null){clearInterval(rt);S.replay=null;render();return}S.apply.clear();S.replay=-1;const tick=()=>{const all=[...S.snap.events].sort((a,b)=>a.published.localeCompare(b.published)||a.id.localeCompare(b.id));S.replay++;if(S.replay>=all.length){clearInterval(rt);S.replay=null;log("Replay complete");load();return}const e=all[S.replay];log(`Feed ▸ ${e.id} ${e.title} → ${e.status}`);if(e.status==="active")S.apply.add(e.id);load()};tick();rt=setInterval(tick,2400)}
+function renderBand(){const b=S.snap.bands,t=Object.values(b).reduce((a,c)=>a+c,0)||1,lab={HIGH:"HIGH ≥70",ELEVATED:"ELEVATED 45–69",MODERATE:"MODERATE 30–44",LOW:"LOW <30"};
+ $("#band").innerHTML=Object.keys(b).map(k=>`<div class="seg" style="flex:${Math.max(b[k],.4)};border-color:${COL[k]};background:${COL[k]}18"><div class="big num" style="color:${COL[k]}">${b[k]} <span class="sm">${Math.round(100*b[k]/t)}%</span></div><small>${lab[k]} · nodes</small></div>`).join("")+`<div class="seg" style="flex:0 0 190px;border-color:var(--stroke)"><div class="big num">${fmt(S.snap.totalRevenueM)}</div><small>portfolio revenue · ${S.snap.nodes.filter(n=>!n.unscored).length} scored nodes</small></div>`}
+function renderTree(){const s=S.snap,P=S.pos,f=S.focus,ps=f?pathSet(f):null,dim=k=>ps&&!ps.has(k)?.08:1;let h="";
+ [200,295,375].forEach(r=>h+=`<circle cx="500" cy="500" r="${r}" fill="none" stroke="#16202C" stroke-dasharray="2 6"/>`);
+ [[200,"TIER 1"],[295,"TIER 2"],[375,"TIER 3"]].forEach(([r,t])=>h+=`<text x="500" y="${500-r-4}" fill="#3a475a" font-size="8" text-anchor="middle">${t}</text>`);
+ const line=(a,b,o)=>`<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="${o.c}" stroke-width="${o.w}" stroke-dasharray="${o.d||""}" opacity="${o.o}" ${o.cls?`class="${o.cls}"`:""}/>`;
+ s.components.forEach(c=>{h+=line(P["C:"+c.id],{x:500,y:500},{c:"#2a3a52",w:1,o:dim("C:"+c.id)})});
+ s.edges.forEach(e=>{const A=P[e.from];if(!A)return;const frm=N(e.from);
+  if(e.to==="NOVADRIVE"){e.components.forEach(c=>{const B=P["C:"+c];h+=line(A,B,{c:"#4a6fa5",w:1+(e.alloc||.3)*3.5,o:ps?(ps.has(e.from)&&ps.has("C:"+c)?1:.06):.8})});return}
+  const B=P[e.to];if(!B)return;const hubHot=frm.flags?.hub&&frm.score>=70&&e.kind==="supply"&&e.status!=="hypothesis",ok=!ps||(ps.has(e.from)&&ps.has(e.to));
+  if(e.kind==="control")h+=line(A,B,{c:"#9b7cff",w:1.2,d:"5 4",o:ok?.9:.06});
+  else{h+=line(A,B,{c:hubHot?"#FF3B47":"#6d8cb8",w:hubHot?2.2:1.2,d:e.status==="inferred"?"6 4":e.status==="hypothesis"?"2 4":"",o:ok?(hubHot?.9:.65):.05,cls:hubHot?"hubarc":""})}});
+ h+=`<g opacity="${dim("NOVADRIVE")}"><circle cx="500" cy="500" r="40" fill="#141C28" stroke="#7C5CFF" stroke-width="2"/><text x="500" y="498" text-anchor="middle" fill="#fff" font-size="10" font-weight="700">NOVADRIVE</text><text x="500" y="510" text-anchor="middle" fill="#9AA9BC" font-size="7">${fmt(s.totalRevenueM)}</text></g>`;
+ s.products.forEach((p,i)=>{const a=-Math.PI/2+i*2*Math.PI/3+.5,x=500+62*Math.cos(a),y=500+62*Math.sin(a);h+=`<g opacity="${dim("P:"+p.id)}"><rect x="${x-14}" y="${y-8}" width="28" height="16" rx="4" fill="#0E131B" stroke="#38BDF8"/><text x="${x}" y="${y+3}" text-anchor="middle" fill="#38BDF8" font-size="8">${p.id} ${fmt(p.revenueM)}</text></g>`});
+ s.components.forEach(c=>{const p=P["C:"+c.id];h+=`<g opacity="${dim("C:"+c.id)}"><rect x="${p.x-14}" y="${p.y-8}" width="28" height="16" rx="3" fill="#0E131B" stroke="#4a6fa5"/><text x="${p.x}" y="${p.y+3}" text-anchor="middle" fill="#9AA9BC" font-size="8"><title>${esc(c.name)} · ${c.leadWeeks}w qualification</title>${c.id}</text></g>`});
+ s.nodes.forEach(n=>{const p=P[n.id];if(!p)return;const r=n.kind==="holding"?7:6+10*(n.exposureM||0)/s.totalRevenueM,col=n.unscored?"#566377":COL[n.band],C=2*Math.PI*(r+4),dash=n.status==="hypothesis"?"2 3":n.confidence==="high"?"":n.confidence==="medium"?`${C/2} ${C/2}`:`${C/4} ${C*.75}`;
+  const changed=S.prev[n.id]!=null&&n.score!=null&&Math.abs(S.prev[n.id]-n.score)>.05;
+  h+=`<g class="node" data-id="${n.id}" opacity="${dim(n.id)}" transform="translate(${p.x},${p.y})"><circle r="${r+4}" fill="none" stroke="#cfd8e6" stroke-width="1.4" stroke-dasharray="${dash}" opacity=".8"/><circle r="${r}" fill="${col}" fill-opacity="${n.unscored?.35:.88}" stroke="${f===n.id?"#fff":"#05080C"}" stroke-width="${f===n.id?2.5:1}" ${n.kind==="holding"?'stroke-dasharray="3 2"':""}/>${S.quar.has(n.id)?`<circle r="${r}" fill="url(#hatch)"/>`:""}${n.kind==="holding"?`<text y="3" text-anchor="middle" font-size="8">◆</text>`:""}${changed?`<circle class="fl"/>`:""}<text y="${r+14}" text-anchor="middle">${esc(n.short.split(" ")[0])}${n.score!=null?" "+Math.round(n.score):""}</text><title>${esc(n.name)} · ${n.score??"unscored"} ${n.band||""} · conf ${n.confidence} · ${n.zone||""} ${n.site||""}</title></g>`});
+ $("#svg").innerHTML=`<defs><pattern id="hatch" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="2" height="4" fill="#000" opacity=".7"/></pattern></defs>`+h;
+ document.querySelectorAll(".node").forEach(g=>g.onclick=e=>{e.stopPropagation();if(e.shiftKey&&S.focus&&S.focus!==g.dataset.id)compare(g.dataset.id);else openFocus(g.dataset.id)});$("#svg").onclick=exitFocus}
+function renderTape(){const s=S.snap,top=[...s.nodes].filter(n=>!n.unscored).sort((a,b)=>b.score-a.score);
+ const pin=S.focus?[N(S.focus)]:[];const blocks=[...pin,...top].map(n=>{const d=n.score-(n.base??n.score),g=d>0.05?`<span style="color:var(--down)">▲${d.toFixed(1)}</span>`:d<-0.05?`<span style="color:var(--up)">▼${(-d).toFixed(1)}</span>`:`<span class="lo">●0.0</span>`;
+  return `<span class="tk mono">${pin.includes(n)&&n.id===S.focus?"◆ ":""}${S.quar.has(n.id)?"⧉ QUARANTINED ":""}[ <b>${esc(n.short.split(" ")[0].toUpperCase())} ${n.id.slice(4)}</b> ] SCORE <b style="color:${COL[n.band]}">${n.score.toFixed(1)}</b> ${g} | ${n.band} | CONF ${n.confidence.toUpperCase()} | ${fmt(n.exposureM)} | ${n.zone} <span class="lo">DS</span></span>`});
+ const evs=s.events.filter(e=>e.status==="active").map(e=>`<span class="tk mono">▸ ${e.id} ${esc(e.title.toUpperCase())} · ${e.nodes.length} NODES · ${fmt(e.revenueOnPathM)} <span class="lo">DS</span></span>`);
+ const html=[...blocks,...evs].join("");$("#tapetrack").innerHTML=html+html}
+function renderRail(){document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.t===S.tab));const s=S.snap,b=$("#railbody");if(!s)return;
+ if(S.tab==="alerts"){b.innerHTML=S.esc.map(e=>`<div class="card s-HIGH"><span class="badge b-HIGH">HIGH</span><span class="badge b-info">ESCALATED</span><span class="lo mono sm">${e.t}</span><div>${esc(e.m)}</div></div>`).join("")+visEvents().map(e=>{const bd=e.status==="duplicate"?`<span class="badge b-warn">DUPLICATE of ${e.dupOf}</span>`:e.status==="stale"?`<span class="badge b-warn">STALE</span>`:e.status==="not_in_network"?`<span class="badge b-red">NOT IN NETWORK</span>`:e.status==="no_impact"?`<span class="badge b-info">NO IMPACT</span>`:`<span class="badge b-${e.severity}">${e.severity}</span>`;
+   return `<div class="card s-${e.severity}"><div class="mono sm lo">${e.published} ▸${e.family} ${e.dupes>1?`<span class="badge">×${e.dupes} dupes</span>`:""}</div><div>${bd}<b>${esc(e.title)}</b></div><div class="sm mid" style="margin:4px 0">${esc(e.alert)}</div>
+   ${e.status==="active"?`<div class="sm"><span class="lo">MATCHED</span> ${e.nodes.map(i=>`<a href="#" data-f="${i}">${esc(nn(i))}</a>`).join(", ")||"—"}<br><span class="lo">IMPACT</span> ${e.impactCount} nodes · ${fmt(e.revenueOnPathM)} on path<br>${(e.impact||[]).slice(0,4).map(i=>`<span class="badge b-warn">${esc(i.short.split(" ")[0])} +${i.delta}</span>`).join("")}</div>
+   <div style="margin-top:6px"><button data-ap="${e.id}" class="${S.apply.has(e.id)?"on":""}">${S.apply.has(e.id)?"Revert":"Apply"}</button> <button data-alt="${e.id}">⟡ Alternates</button></div>`:""}</div>`}).join("");
+   b.querySelectorAll("[data-ap]").forEach(x=>x.onclick=()=>toggleEv(x.dataset.ap));b.querySelectorAll("[data-f]").forEach(x=>x.onclick=e=>{e.preventDefault();openFocus(x.dataset.f)});
+   b.querySelectorAll("[data-alt]").forEach(x=>x.onclick=()=>{const e=s.events.find(v=>v.id===x.dataset.alt);const t=[...e.nodes].map(N).sort((a,c)=>c.score-a.score)[0];if(t){openFocus(t.id).then(()=>showAlts(t.id))}})}
+ else if(S.tab==="crit"){const L=[...s.nodes].filter(n=>!n.unscored).sort((a,c)=>c.score-a.score||c.exposureM-a.exposureM).slice(0,10);
+  b.innerHTML=L.map((n,i)=>`<div class="row ${S.focus===n.id?"sel":""}" data-f="${n.id}"><span class="mono lo">${i+1}</span><div style="flex:1"><div><b>${esc(n.short)}</b> <span class="lo sm">${n.site} T${n.tier}</span></div><div class="bar"><i style="width:${n.score}%;background:${COL[n.band]}"></i></div><div class="sm lo">conf ${n.confidence} · ${fmt(n.exposureM)}${n.unknown.length?" · "+n.unknown.length+" unknown":""}</div></div><span class="num" style="color:${COL[n.band]}">${n.score.toFixed(1)}</span></div>`).join("")+
+  `<div class="sm lo" style="margin-top:8px">${s.nodes.filter(n=>n.flags?.soleFull).length} full-allocation single-source · ${s.nodes.filter(n=>n.flags?.hub).length} shared hubs · ${s.nodes.filter(n=>n.zone==="Z01"&&!n.unscored).length} in Z01</div>`;b.querySelectorAll("[data-f]").forEach(x=>x.onclick=()=>openFocus(x.dataset.f))}
+ else b.innerHTML=S.log.map(l=>`<div class="sm"><span class="mono lo">${l.t}</span> ${esc(l.m)}</div>`).join("")||`<div class="lo sm">Every focus, apply, escalate, quarantine and shortlist action is recorded here.</div>`}
+document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{S.tab=b.dataset.t;renderRail()});
+function renderTray(){$("#trayb").innerHTML=S.snap.ruledOut.map(r=>`<span class="rt" title="${esc(r.reason)}">${esc(r.name.slice(0,34))} <span class="lo">${r.docs.slice(0,2).join(" ")}</span></span>`).join("")}
+function renderBanner(){const bn=$("#banner");const t=[];if(S.outage)t.push("SIMULATION ACTIVE · outage at "+nn(S.outage));if(S.apply.size)t.push("Applied: "+[...S.apply].join(", "));bn.style.display=t.length?"block":"none";bn.textContent=t.join("  |  ")}
+function renderActions(){const f=S.focus,d=!f;$("#actions").innerHTML=`<button data-a="alt" ${d||!N(f)?.eligibleAlternates?"disabled":""}>⟡ Find alternates</button><button data-a="esc" ${d?"disabled":""}>↗ Escalate to CRO</button><button data-a="rfi" ${d?"disabled":""}>✎ Draft RFI</button><button data-a="q" ${d?"disabled":""}>⧉ ${S.quar.has(f)?"Release":"Quarantine"}</button><button data-a="rev" ${d?"disabled":""}>✓ Mark reviewed</button><button data-a="exp" ${d?"disabled":""}>↓ Export dossier</button><button data-a="out" ${d?"disabled":""}>◐ ${S.outage===f?"End outage":"Simulate outage"}</button><span class="spacer"></span><span class="lo sm">${f?`Focused: <b>${esc(nn(f))}</b>`:"Click a node to enter Focus Mode · Esc exits · Shift-click compares · Ctrl+K search"}</span>`;
+ document.querySelectorAll("#actions [data-a]").forEach(b=>b.onclick=()=>action(b.dataset.a))}
+async function action(a){const f=S.focus;if(!f)return;const n=N(f);
+ if(a==="alt")showAlts(f);
+ if(a==="esc"){const m=`${n.short}: score ${n.score}, ${fmt(n.exposureM)} on path — CRO review requested`;S.esc.unshift({t:new Date().toISOString().slice(11,19)+"Z",m});S.tab="alerts";log("Escalated "+n.short)}
+ if(a==="rfi"){const r=await api("rfi",{id:f});modal(`<h3>RFI draft · ${esc(n.short)}</h3><textarea rows="14" id="rfitxt">${esc(r.text)}</textarea><div style="margin-top:8px"><button onclick="navigator.clipboard.writeText($('#rfitxt').value)">Copy</button> <button onclick="modal()">Close</button></div>`);log("RFI drafted for "+n.short)}
+ if(a==="q"){S.quar.has(f)?S.quar.delete(f):S.quar.add(f);localStorage.nq=JSON.stringify([...S.quar]);log((S.quar.has(f)?"Quarantined ":"Released ")+n.short);render()}
+ if(a==="rev"){S.rev.add(f);log("Reviewed "+n.short)}
+ if(a==="exp"){window.open("/api/index?"+new URLSearchParams({op:"export",id:f,apply:[...S.apply].join(",")}))}
+ if(a==="out"){S.outage=S.outage===f?null:f;log((S.outage?"Simulated outage at ":"Ended outage at ")+n.short);load()}}
+function modal(h){const m=$("#modal");if(!h){m.style.display="none";return}$("#modalbody").innerHTML=h;m.style.display="flex"}window.modal=modal;$("#modal").onclick=e=>{if(e.target.id==="modal")modal()}
+/* ---------- focus drawer ---------- */
+async function openFocus(id,quiet){if(!N(id))return;S.focus=id;if(!quiet)log("Focus "+nn(id));const d=await api("focus",{id});if(S.focus!==id)return;S.detail=d;history.replaceState(null,"","?focus="+id+(S.apply.size?"&apply="+[...S.apply].join(","):""));drawer(d);renderTree();renderTape();renderActions();renderRail();$("#agentbtn").innerHTML=`✦ Analyst brief — <b>${esc(d.node.short)}</b>`}
+function exitFocus(){if(!S.focus)return;S.focus=null;S.detail=null;$("#drawer").style.display="none";history.replaceState(null,"","?");renderTree();renderTape();renderActions();renderRail()}
+function drawer(d){const n=d.node,sc=d.score,el=$("#drawer");let cum=0;
+ const wf=sc.breakdown.map(b=>{const v=b.contribution??b.delta;const o=`<tr><td>${esc(b.term)}${b.eventId?` <span class="badge">${b.eventId}</span>`:""}</td><td class="num" style="text-align:right">${v>0?"+":""}${v}</td><td style="width:34%"><div class="bar"><i style="left:${cum}%;width:${Math.max(Math.abs(v),.5)}%;background:${b.delta!=null?(v>0?"var(--crit)":"var(--low)"):"var(--info)"}"></i></div></td></tr>${b.reason?`<tr><td colspan="3" class="lo">${esc(b.reason)}</td></tr>`:""}`;cum+=v;return o}).join("");
+ const ind=Object.entries(d.indicators).map(([k,v])=>`<tr><td>${k}</td><td class="num">${v==null?'<span class="unk">UNKNOWN</span>':v}</td></tr>`).join("");
+ const led=d.ledger.map(x=>`<tr><td class="mono">${x.id}</td><td>${x.date}<br><span class="lo">${esc(x.type)}</span></td><td>${esc(x.status)}${x.dupNote?`<br><span class="badge b-warn">${esc(x.dupNote)}</span>`:""}<br><span class="lo mono">${esc(x.locator)}</span></td></tr><tr><td colspan="3" class="mid">${esc(x.detail)}</td></tr>`).join("");
+ el.style.display="block";el.innerHTML=`<button style="float:right" onclick="exitFocus()">✕ Esc</button><h2>${esc(d.entity.name)}</h2><div class="sm mid">${n.id} · ${esc(d.entity.type)} · ${d.entity.site} ${esc(d.entity.siteName||"")} · ${d.entity.zone} · ${esc(d.entity.market||"")}</div>
+ <div style="margin:8px 0"><span class="badge b-${n.band}">${n.band||"UNSCORED"} ${n.score??""}</span><span class="badge">CONFIDENCE ${n.confidence.toUpperCase()} · ${n.families} families</span><span class="badge">TIER ${n.tier} (metadata)</span>${n.status!=="confirmed"?`<span class="badge b-warn">${n.status.toUpperCase()}</span>`:""}${S.rev.has(n.id)?'<span class="badge b-info">REVIEWED</span>':""}${S.quar.has(n.id)?'<span class="badge b-red">QUARANTINED</span>':""}</div>
+ <h3>Role</h3><div class="sm">Supplies: ${d.suppliesTo.map(s=>`<b>${esc(s.input)}</b> → ${esc(s.to==="NOVADRIVE"?"NovaDrive":nn(s.to))} (${s.status}${s.alloc!=null?", "+Math.round(s.alloc*100)+"% planning allocation":""}${s.components.length?", "+s.components.join("/"):""}) <span class="lo">${s.docs.join(" ")}</span>`).join("<br>")||"—"}<br>Supplied by: ${d.suppliedBy.map(s=>`${esc(nn(s.from))} (${esc(s.input)}, ${s.status})`).join("; ")||"— (deepest known)"}${d.controlledBy?`<br>Controlled by: ${esc(nn(d.controlledBy))} (ownership edge, not supply)`:""}<br>Qualification lead time on path: ${d.leadWeeks} weeks</div>
+ <h3>Exposure math</h3><div class="sm lo mono">${esc(d.exposure.formula)}</div><table>${d.exposure.walk.map(w=>`<tr><td>${w.component} → ${w.product}</td><td class="num">${fmt(w.productRevenueM)} × ${w.share}</td><td class="num">${fmt(w.revenueM)}</td></tr>`).join("")}<tr><td colspan="2"><b>Revenue at risk (each product counted once)</b></td><td class="num"><b>${fmt(d.exposure.revenueAtRiskM)}</b> · ${Math.round(d.exposure.share*100)}%</td></tr></table>
+ <h3>Risk waterfall (reconciles to ${sc.score})</h3><table>${wf}<tr><td><b>TOTAL (cap 100)</b></td><td class="num"><b>${sc.score}</b></td><td></td></tr></table><div class="sm lo">${sc.tierNote}</div>
+ <h3>Indicators ${sc.unknownFields.length?`<span class="badge b-warn">${sc.unknownFields.length} unknown → neutral + 8 pt penalty</span>`:""}</h3><table>${ind}</table>
+ <h3>Live events touching this node</h3><div class="sm">${d.events.map(e=>`<span class="badge">${e.id}</span>${esc(e.title)} ${S.apply.has(e.id)?"(applied)":""}<br>`).join("")||'<span class="lo">None active</span>'}</div>
+ <h3>Smart alternates</h3>${n.eligibleAlternates?`<button id="altbtn">⟡ Find alternate suppliers</button><div id="altbox"></div>`:`<div class="sm lo">Offered only when score ≥ 70, or the node is a sole-source / shared-hub dependency.</div>`}
+ <h3>Evidence ledger (${d.ledger.length} records)</h3><table>${led}</table>`;
+ const ab=$("#altbtn");if(ab)ab.onclick=()=>showAlts(n.id)}
+async function showAlts(id){const box=$("#altbox");if(!box)return;box.innerHTML='<div class="lo sm">Searching public sources…</div>';const r=await api("alternates",{id}),W=r.weights;log("Alternate search for "+nn(id)+" ("+r.provider+")");
+ box.innerHTML=`<div class="sm" style="margin:6px 0"><span class="badge b-info">${r.mode.toUpperCase()}</span> Query: <i>${esc(r.profile.query)}</i><br><span class="lo">${esc(r.note)}</span></div>`+r.excluded.map(x=>`<div class="sm" style="color:var(--elev-c)">Excluded: ${esc(x)}</div>`).join("")+
+ r.candidates.map(c=>`<div class="card"><div style="display:flex;justify-content:space-between"><b>${esc(c.name)}</b><span class="badge b-info">${esc(c.hq)}</span></div>
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px"><div><div class="sm lo">FITMENT</div><div class="num" style="font-size:20px">${c.fitment}</div><table>${Object.entries(c.rubric).map(([k,v])=>`<tr><td>${k} <span class="lo">${W[k]}%</span></td><td class="num">${(v*100).toFixed(0)}</td></tr>`).join("")}</table></div>
+ <div><div class="sm lo">SUPPLIER RISK (separate)</div><div class="badge b-${c.supplierRisk.level==="Lower"?"LOW":"ELEVATED"}" style="margin:4px 0">${c.supplierRisk.level}</div><div class="sm lo">${c.supplierRisk.notes.map(esc).join("<br>")}</div></div></div>
+ <div class="sm" style="margin-top:6px">${c.evidence.map(e=>`${esc(e.text)}<br><a href="${esc(e.url)}" target="_blank" rel="noopener">source</a> · accessed ${e.accessed} · ${e.verified?'<span class="badge b-LOW">URL VERIFIED</span>':'<span class="badge b-warn">RE-VERIFY URL</span>'}`).join("")}</div>
+ <div style="margin-top:6px"><button onclick="window.open('${esc(c.url)}')">Open source</button> <button data-sl="${c.id}">Add to shortlist</button> <button data-rj="${c.id}">Reject…</button></div></div>`).join("")+
+ `<div class="sm"><b>Validation required</b><ul>${r.validation.map(v=>`<li>${esc(v)}</li>`).join("")}</ul></div>`+(r.liveResults.length?`<div class="sm"><b>Live web results (DDG, unvetted)</b><ul>${r.liveResults.map(l=>`<li><a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.name)}</a></li>`).join("")}</ul></div>`:"");
+ box.querySelectorAll("[data-sl]").forEach(b=>b.onclick=()=>{S.short.push(b.dataset.sl);log("Shortlisted "+b.dataset.sl+" for "+nn(id));b.textContent="✓ Shortlisted"});
+ box.querySelectorAll("[data-rj]").forEach(b=>b.onclick=()=>{const w=prompt("Reason for rejecting?");if(w){log("Rejected "+b.dataset.rj+": "+w);b.closest(".card").style.opacity=.35}});box.scrollIntoView({behavior:"smooth"})}
+async function compare(id){const [a,b]=await Promise.all([api("score",{id:S.focus}),api("score",{id})]);modal(`<h3>Compare</h3><table><tr><th></th><th>${esc(nn(S.focus))}</th><th>${esc(nn(id))}</th></tr><tr><td>Score</td><td class="num">${a.score}</td><td class="num">${b.score}</td></tr><tr><td>Band</td><td>${a.band}</td><td>${b.band}</td></tr><tr><td>Confidence</td><td>${a.confidence}</td><td>${b.confidence}</td></tr>${a.breakdown.filter(x=>x.contribution!=null).map((x,i)=>`<tr><td>${x.term}</td><td class="num">${x.contribution}</td><td class="num">${b.breakdown[i].contribution}</td></tr>`).join("")}</table><button onclick="modal()">Close</button>`)}
+/* ---------- agent, palette, keys, clock ---------- */
+$("#agentbtn").onclick=async()=>{const p=$("#pop");if(p.style.display==="block"){p.style.display="none";return}if(!S.focus){p.innerHTML="Select a node first.";p.style.display="block";return}p.innerHTML="…";p.style.display="block";const r=await api("reason",{id:S.focus});p.innerHTML=`<span class="badge b-info">${esc(r.provider)}</span><br>${esc(r.text)}`}
+function palette(){modal(`<input id="pq" placeholder="Jump to node, event or action…" autofocus><div id="pl" style="margin-top:8px;max-height:44vh;overflow:auto"></div>`);const it=()=>[...S.snap.nodes.map(n=>({l:n.name+" · "+n.id,f:()=>openFocus(n.id)})),...S.snap.events.map(e=>({l:e.id+" · "+e.title,f:()=>toggleEv(e.id)})),{l:"Reset scenario",f:()=>$("#reset").click()},{l:"Start feed replay",f:replay}];
+ const draw=()=>{const q=$("#pq").value.toLowerCase();const L=it().filter(x=>x.l.toLowerCase().includes(q)).slice(0,12);$("#pl").innerHTML=L.map((x,i)=>`<div class="row" data-i="${i}">${esc(x.l)}</div>`).join("");$("#pl").querySelectorAll(".row").forEach((r,i)=>r.onclick=()=>{modal();L[i].f()});$("#pq").onkeydown=e=>{if(e.key==="Enter"&&L[0]){modal();L[0].f()}}};$("#pq").oninput=draw;draw();$("#pq").focus()}
+addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key==="k"){e.preventDefault();palette()}else if(e.key==="Escape"){if($("#modal").style.display==="flex")modal();else exitFocus()}else if(e.key==="/"&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();palette()}
+ else if((e.key==="ArrowDown"||e.key==="ArrowUp")&&S.snap&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){const L=[...S.snap.nodes].filter(n=>!n.unscored).sort((a,c)=>c.score-a.score),i=L.findIndex(n=>n.id===S.focus),j=Math.max(0,Math.min(L.length-1,i+(e.key==="ArrowDown"?1:-1)));openFocus(L[j].id)}else if(e.key==="Enter"&&!S.focus&&S.snap){openFocus([...S.snap.nodes].filter(n=>!n.unscored).sort((a,c)=>c.score-a.score)[0].id)}});
+setInterval(()=>{$("#clock").innerHTML=new Date().toISOString().slice(0,10)+" <b>"+new Date().toISOString().slice(11,19)+"Z</b><br><span class='lo'>dataset · case feed to "+(S.snap?S.snap.events.map(e=>e.published).sort().pop():"…")+"</span>"},1000);
+setInterval(()=>{if(S.replay==null)load()},8000);   // polling (Vercel functions do not hold SSE connections open on Hobby)
+load().then(()=>{if(params.get("focus"))openFocus(params.get("focus"))});
+</script></body></html>

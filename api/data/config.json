@@ -1,0 +1,17 @@
+{
+ "_note": "Model configuration (method, not case data). Weights are editable; every term is shown in the score breakdown.",
+ "weights": {"revenue":0.30,"financial":0.12,"operational":0.12,"geographic":0.10,"concentration":0.12,"substitutability":0.12,"network":0.07,"assurance":0.05},
+ "bands": {"HIGH":70,"ELEVATED":45,"MODERATE":30},
+ "scales": {"currentRatio":[2.5,0.8],"netDebtEbitda":[1,6],"timeliness":[95,70],"timelinessChangePP":[5,-10]},
+ "unknown": {"neutral":0.5,"penalty":8},
+ "rules": {"sharedHubAddon":15,"soleSourceFloor":70,"hazardEventAddon":20,"hazardPropagation":8,"financialAddon":14,"financialSoleFloor":85,"financialPropagation":6,"logisticsFrictionPoints":25,"outageAddon":30,"outageFloor":85,"outagePropagation":8,"maxLeadWeeks":16},
+ "staleDays": 365,
+ "eventClasses": {
+  "hazard": ["flood","storm","earthquake","wildfire","typhoon","hurricane","weather"],
+  "financial": ["financing","covenant","insolvency","restructuring","bankrupt","default","delayed payments","downgrade"],
+  "logistics": ["port","congestion","strike","terminal","vessel"],
+  "corporate": ["relocat","head office","headquarters"],
+  "identity": ["allegation","corrected"]
+ },
+ "fitmentWeights": {"technical":30,"application":25,"footprint":15,"presence":15,"qualification":15}
+}
